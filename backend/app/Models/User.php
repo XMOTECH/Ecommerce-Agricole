@@ -19,7 +19,6 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role',
         'phone',
         'address',
     ];
@@ -47,20 +46,6 @@ class User extends Authenticatable
         ];
     }
 
-    /**
-     * Vérifier si l'utilisateur est admin
-     */
-    public function isAdmin(): bool
-    {
-        return $this->role === 'admin';
-    }
 
-    /**
-     * Vérifier si l'utilisateur est client
-     */
-    public function isClient(): bool
-    {
-        return $this->role === 'client';
-    }
 
 }

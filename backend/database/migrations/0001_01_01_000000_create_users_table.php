@@ -15,8 +15,6 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
 
-            // Champ pour différencier admin et client
-            $table->enum('role', ['admin', 'client'])->default('client');
 
             // Champs de base
             $table->string('phone')->nullable();
