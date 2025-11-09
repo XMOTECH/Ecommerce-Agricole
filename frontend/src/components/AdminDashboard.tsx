@@ -16,7 +16,10 @@ import {
   Sprout,
   Menu,
   X,
-  ChevronDown
+  ChevronDown,
+  LogOut,
+  User,
+  Shield
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Input } from './ui/input';
@@ -24,8 +27,21 @@ import { Badge } from './ui/badge';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from './ui/sheet';
 import { ScrollArea } from './ui/scroll-area';
 import { ThemeToggle } from './ThemeToggle';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuLabel, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from './ui/dropdown-menu';
+import { Avatar, AvatarFallback } from './ui/avatar';
 
-export function AdminDashboard() {
+interface AdminDashboardProps {
+  onLogout: () => void;
+}
+
+export function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeMenu, setActiveMenu] = useState('Dashboard');
 
@@ -149,19 +165,69 @@ export function AdminDashboard() {
               
               <button className="relative p-2 hover:bg-accent rounded-lg transition-colors">
                 <Bell className="w-5 h-5 text-foreground" />
-                <div className="absolute top-1 right-1 w-2 h-2 bg-[#ff6b35] rounded-full"></div>
+                <Badge variant="destructive" className="absolute -top-1 -right-1 w-5 h-5 p-0 flex items-center justify-center text-xs">
+                  5
+                </Badge>
               </button>
               
-              <div className="flex items-center gap-2 ml-2">
-                <div className="hidden sm:block text-right">
-                  <div className="text-sm text-foreground">Admin</div>
-                  <div className="text-xs text-muted-foreground">Administrateur</div>
-                </div>
-                <div className="w-10 h-10 bg-[#ff6b35] rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm">A</span>
-                </div>
-                <ChevronDown className="w-4 h-4 text-muted-foreground hidden sm:block" />
-              </div>
+              {/* Admin Profile Menu */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center gap-2 ml-2 hover:bg-accent px-2 py-1.5 rounded-lg transition-colors">
+                    <div className="hidden sm:block text-right">
+                      <div className="text-sm text-foreground">Admin</div>
+                      <div className="text-xs text-muted-foreground">Administrateur</div>
+                    </div>
+                    <Avatar className="w-10 h-10">
+                      <AvatarFallback className="bg-[#ff6b35] text-white">
+                        AD
+                      </AvatarFallback>
+                    </Avatar>
+                    <ChevronDown className="w-4 h-4 text-muted-foreground hidden sm:block" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-64">
+                  <DropdownMenuLabel className="flex items-center gap-3 py-3">
+                    <Avatar className="w-12 h-12">
+                      <AvatarFallback className="bg-[#ff6b35] text-white">
+                        AD
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col">
+                      <span className="text-sm">Admin Principal</span>
+                      <span className="text-xs text-muted-foreground">admin@agrimarket.com</span>
+                      <Badge variant="secondary" className="w-fit mt-1 text-xs">
+                        <Shield className="w-3 h-3 mr-1" />
+                        Super Admin
+                      </Badge>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="cursor-pointer">
+                    <User className="w-4 h-4 mr-2" />
+                    Mon Profil
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer relative">
+                    <Bell className="w-4 h-4 mr-2" />
+                    Notifications
+                    <Badge variant="destructive" className="ml-auto text-xs px-1.5 py-0">
+                      5
+                    </Badge>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer">
+                    <Settings className="w-4 h-4 mr-2" />
+                    Paramètres
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950"
+                    onClick={onLogout}
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Déconnexion
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>

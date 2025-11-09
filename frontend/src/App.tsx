@@ -55,39 +55,31 @@ export default function App() {
       <div className="min-h-screen bg-background">
         {/* Dev Mode Toggle - Hidden in production */}
         <div className="fixed bottom-4 right-4 z-50 bg-card rounded-full shadow-lg border border-border">
-          <div className="flex flex-col gap-1 p-2">
-            <div className="flex gap-1">
-              <button
-                onClick={() => setView('client')}
-                className={`px-4 py-2 rounded-full text-xs transition-all ${
-                  view === 'client'
-                    ? 'bg-[#ff6b35] text-white shadow-md'
-                    : 'text-muted-foreground hover:bg-accent'
-                }`}
-              >
-                Client
-              </button>
-              <button
-                onClick={() => setView('admin')}
-                className={`px-4 py-2 rounded-full text-xs transition-all ${
-                  view === 'admin'
-                    ? 'bg-[#1e4d3d] text-white shadow-md'
-                    : 'text-muted-foreground hover:bg-accent'
-                }`}
-              >
-                Admin
-              </button>
-            </div>
+          <div className="flex gap-1 p-2">
             <button
-              onClick={handleLogout}
-              className="px-4 py-2 rounded-full text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-950 transition-all border-t border-border"
+              onClick={() => setView('client')}
+              className={`px-4 py-2 rounded-full text-xs transition-all ${
+                view === 'client'
+                  ? 'bg-[#ff6b35] text-white shadow-md'
+                  : 'text-muted-foreground hover:bg-accent'
+              }`}
             >
-              Déconnexion
+              Client
+            </button>
+            <button
+              onClick={() => setView('admin')}
+              className={`px-4 py-2 rounded-full text-xs transition-all ${
+                view === 'admin'
+                  ? 'bg-[#1e4d3d] text-white shadow-md'
+                  : 'text-muted-foreground hover:bg-accent'
+              }`}
+            >
+              Admin
             </button>
           </div>
         </div>
 
-        {view === 'admin' ? <AdminDashboard /> : <ClientShop />}
+        {view === 'admin' ? <AdminDashboard onLogout={handleLogout} /> : <ClientShop onLogout={handleLogout} />}
       </div>
     </ThemeProvider>
   );
