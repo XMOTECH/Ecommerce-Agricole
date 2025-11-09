@@ -1,7 +1,10 @@
 <?php
 
+use App\Http\Controllers\Api\AddressController;
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\CheckoutController;
+use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ProductController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Routing\Router;
@@ -9,6 +12,7 @@ use App\Http\Controllers\Api\AuthController;
 
 Route::post('login', [AuthController::class, 'login']);
 Route::post('register', [AuthController::class, 'register']);
+
 
 //Route publique phase 2
 Route::get('categories', [CategoryController::class, 'index']);
@@ -23,7 +27,21 @@ Route::middleware('auth:sanctum')->group(function () {
     // Routes pour le  cart
     Route::get('cart', [CartController::class, 'index']);
     Route::post('cart/add', [CartController::class, 'add']);
-    Route::put('cart/update{productId}', [CartController::class, 'update']);
+    Route::put('cart/update/{productId}', [CartController::class, 'update']);
     Route::delete('cart/remove/{productId}', [CartController::class, 'remove']);
     Route::post('cart/sync', [CartController::class, 'sync']);
+
+    // Route de l addresse
+    //Route::resource('addresses', AddressController::class)->only(['index', 'store']);
+    Route::get('addresses', [AddressController::class, 'index']);
+    Route::post('addresses', [AddressController::class, 'store']);
+
+
+    //route de la cheickout
+    Route::post('checkout', [CheckoutController::class, 'store']);
+
+    // Route dela commande
+    Route::get('orders', [OrderController::class, 'index']);
+    Route::get('orders/{id}', [OrderController::class, 'show']);
+
 });
