@@ -14,7 +14,16 @@ import {
   Home,
   Grid,
   ShoppingBag,
-  Package
+  Package,
+  Bell,
+  Settings,
+  LogOut,
+  UserCircle,
+  ChevronDown,
+  Trash2,
+  ArrowRight,
+  Tag,
+  Percent
 } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { Card, CardContent } from './ui/card';
@@ -23,6 +32,15 @@ import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from './ui/sheet';
 import { ThemeToggle } from './ThemeToggle';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuLabel, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from './ui/dropdown-menu';
+import { Avatar, AvatarFallback } from './ui/avatar';
 
 interface Product {
   id: number;
@@ -40,7 +58,11 @@ interface CartItem extends Product {
   quantity: number;
 }
 
-export function ClientShop() {
+interface ClientShopProps {
+  onLogout: () => void;
+}
+
+export function ClientShop({ onLogout }: ClientShopProps) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('Tous');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -156,78 +178,220 @@ export function ClientShop() {
     ? products 
     : products.filter(p => p.category === selectedCategory);
 
-  const CartContent = () => (
-    <div className="flex flex-col h-full">
-      {cart.length === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center py-12 text-gray-500">
-          <ShoppingCart className="w-16 h-16 mb-4 text-gray-300" />
-          <p>Votre panier est vide</p>
-        </div>
-      ) : (
-        <>
-          <div className="flex-1 overflow-y-auto space-y-4">
-            {cart.map(item => (
-              <div key={item.id} className="flex gap-3 pb-4 border-b border-gray-200">
-                <ImageWithFallback
-                  src={item.image}
-                  alt={item.name}
-                  className="w-20 h-20 rounded-lg object-cover"
-                />
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-sm text-gray-900 mb-1 truncate">{item.name}</h4>
-                  <p className="text-xs text-gray-500 mb-2">{item.price.toFixed(2)} € / {item.unit}</p>
-                  
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => updateQuantity(item.id, -1)}
-                      className="w-7 h-7 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
-                    >
-                      <Minus className="w-3 h-3" />
-                    </button>
-                    <span className="text-sm w-8 text-center">{item.quantity}</span>
-                    <button
-                      onClick={() => updateQuantity(item.id, 1)}
-                      className="w-7 h-7 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
-                    >
-                      <Plus className="w-3 h-3" />
-                    </button>
-                  </div>
-                </div>
-                <div className="text-sm text-gray-900">
-                  {(item.price * item.quantity).toFixed(2)} €
-                </div>
-              </div>
-            ))}
-          </div>
+  const removeFromCart = (productId: number) => {
+    setCart(prevCart => prevCart.filter(item => item.id !== productId));
+  };
 
-          <div className="border-t border-gray-200 pt-4 mt-4 space-y-4">
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Sous-total</span>
-                <span className="text-gray-900">{getTotalPrice().toFixed(2)} €</span>
+  const clearCart = () => {
+    setCart([]);
+  };
+
+  const CartContent = () => {
+    const subtotal = getTotalPrice();
+    const shippingCost = subtotal >= 30 ? 0 : 4.99;
+    const total = subtotal + shippingCost;
+    const savings = subtotal >= 30 ? 4.99 : 0;
+
+    return (
+      <div className="flex flex-col h-full">
+        {cart.length === 0 ? (
+          <div className="flex-1 flex flex-col items-center justify-center py-16 px-4">
+            <div className="w-24 h-24 bg-gradient-to-br from-[#1e4d3d]/10 to-[#7fb685]/10 rounded-full flex items-center justify-center mb-4">
+              <ShoppingCart className="w-12 h-12 text-[#1e4d3d]/40" />
+            </div>
+            <h3 className="text-lg text-foreground mb-2">Votre panier est vide</h3>
+            <p className="text-sm text-muted-foreground text-center mb-6">
+              Ajoutez des produits frais et locaux pour commencer vos achats
+            </p>
+            <Button 
+              onClick={() => setIsCartOpen(false)}
+              className="bg-[#ff6b35] hover:bg-[#ff5722] text-white"
+            >
+              Découvrir nos produits
+            </Button>
+          </div>
+        ) : (
+          <>
+            {/* Header with item count and clear button */}
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-border">
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary" className="bg-[#1e4d3d]/10 text-[#1e4d3d] dark:bg-[#1e4d3d]/20 dark:text-[#7fb685]">
+                  {getTotalItems()} article{getTotalItems() > 1 ? 's' : ''}
+                </Badge>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Livraison</span>
-                <span className="text-green-600">Gratuite</span>
-              </div>
-              <div className="border-t border-gray-200 pt-2 flex justify-between">
-                <span className="text-gray-900">Total</span>
-                <span className="text-[#1e4d3d]">{getTotalPrice().toFixed(2)} €</span>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={clearCart}
+                className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950 h-8 px-2"
+              >
+                <Trash2 className="w-4 h-4 mr-1" />
+                Vider
+              </Button>
+            </div>
+
+            {/* Cart Items */}
+            <div className="flex-1 overflow-y-auto pr-1 space-y-2.5 mb-3">
+              {cart.map(item => (
+                <Card key={item.id} className="overflow-hidden border-border/50 hover:border-[#1e4d3d]/30 dark:hover:border-[#7fb685]/30 transition-all">
+                  <CardContent className="p-3">
+                    <div className="flex gap-3">
+                      {/* Product Image */}
+                      <div className="relative flex-shrink-0">
+                        <ImageWithFallback
+                          src={item.image}
+                          alt={item.name}
+                          className="w-16 h-16 rounded-lg object-cover"
+                        />
+                        {item.inStock && (
+                          <Badge className="absolute -top-1 -left-1 h-4 px-1 text-xs bg-green-500 hover:bg-green-500 text-white">
+                            ✓
+                          </Badge>
+                        )}
+                      </div>
+
+                      {/* Product Info */}
+                      <div className="flex-1 min-w-0 flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-start justify-between gap-2 mb-0.5">
+                            <h4 className="text-sm font-medium text-foreground dark:text-white line-clamp-1">
+                              {item.name}
+                            </h4>
+                            <button
+                              onClick={() => removeFromCart(item.id)}
+                              className="text-muted-foreground hover:text-red-600 dark:hover:text-red-500 transition-colors p-1 -mt-1 flex-shrink-0"
+                              aria-label="Retirer du panier"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                          <p className="text-xs text-muted-foreground dark:text-gray-400 mb-1">
+                            {item.producer}
+                          </p>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-sm font-medium text-[#ff6b35] dark:text-[#ff8c6b]">
+                              {item.price.toFixed(2)} €
+                            </span>
+                            <span className="text-xs text-muted-foreground dark:text-gray-400">
+                              / {item.unit}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Quantity Controls */}
+                        <div className="flex items-center justify-between mt-2">
+                          <div className="flex items-center gap-1.5 bg-muted/50 dark:bg-muted/30 rounded-lg p-1">
+                            <button
+                              onClick={() => updateQuantity(item.id, -1)}
+                              className="w-6 h-6 rounded-md bg-background hover:bg-[#1e4d3d] hover:text-white dark:hover:bg-[#7fb685] flex items-center justify-center transition-all active:scale-95"
+                            >
+                              <Minus className="w-3 h-3" />
+                            </button>
+                            <span className="text-sm font-medium w-7 text-center text-foreground dark:text-white">
+                              {item.quantity}
+                            </span>
+                            <button
+                              onClick={() => updateQuantity(item.id, 1)}
+                              className="w-6 h-6 rounded-md bg-background hover:bg-[#1e4d3d] hover:text-white dark:hover:bg-[#7fb685] flex items-center justify-center transition-all active:scale-95"
+                            >
+                              <Plus className="w-3 h-3" />
+                            </button>
+                          </div>
+                          
+                          <div className="text-right">
+                            <div className="text-sm font-semibold text-foreground dark:text-white">
+                              {(item.price * item.quantity).toFixed(2)} €
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* Promo Code Section */}
+            <div className="mb-3 p-2.5 bg-gradient-to-r from-[#7fb685]/10 to-[#1e4d3d]/10 dark:from-[#7fb685]/20 dark:to-[#1e4d3d]/20 rounded-lg border border-[#7fb685]/20 dark:border-[#7fb685]/30">
+              <div className="flex items-center gap-2">
+                <Tag className="w-4 h-4 text-[#1e4d3d] dark:text-[#7fb685] flex-shrink-0" />
+                <Input 
+                  placeholder="Code promo" 
+                  className="flex-1 h-8 bg-background border-border/50 text-sm"
+                />
+                <Button size="sm" className="bg-[#1e4d3d] hover:bg-[#153a2d] dark:bg-[#7fb685] dark:hover:bg-[#6fa375] text-white h-8 px-3 text-xs">
+                  Appliquer
+                </Button>
               </div>
             </div>
 
-            <Button className="w-full bg-[#1e4d3d] hover:bg-[#153a2d] text-white h-12">
-              Commander
-            </Button>
+            {/* Summary Section */}
+            <div className="border-t border-border pt-3 space-y-3">
+              {/* Savings Badge */}
+              {savings > 0 && (
+                <div className="flex items-center gap-2 p-2.5 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-900">
+                  <div className="w-7 h-7 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Percent className="w-3.5 h-3.5 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-green-700 dark:text-green-400">
+                      Livraison gratuite !
+                    </p>
+                    <p className="text-xs text-green-600 dark:text-green-500">
+                      Vous économisez {savings.toFixed(2)} €
+                    </p>
+                  </div>
+                </div>
+              )}
 
-            <p className="text-xs text-gray-500 text-center">
-              Livraison gratuite pour toute commande supérieure à 30€
-            </p>
-          </div>
-        </>
-      )}
-    </div>
-  );
+              {/* Price Breakdown */}
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground dark:text-gray-400">Sous-total</span>
+                  <span className="font-medium text-foreground dark:text-white">{subtotal.toFixed(2)} €</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground dark:text-gray-400">Livraison</span>
+                  {shippingCost === 0 ? (
+                    <span className="font-medium text-green-600 dark:text-green-500">Gratuite</span>
+                  ) : (
+                    <span className="font-medium text-foreground dark:text-white">{shippingCost.toFixed(2)} €</span>
+                  )}
+                </div>
+                {subtotal < 30 && (
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground dark:text-gray-400 bg-muted/50 dark:bg-muted/30 p-2 rounded">
+                    <span>Plus que {(30 - subtotal).toFixed(2)} € pour la livraison gratuite</span>
+                  </div>
+                )}
+                <div className="border-t border-border pt-2 flex justify-between items-center">
+                  <span className="font-semibold text-foreground dark:text-white">Total</span>
+                  <div className="text-right">
+                    <div className="text-xl font-bold text-[#1e4d3d] dark:text-[#7fb685]">
+                      {total.toFixed(2)} €
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Checkout Button */}
+              <Button className="w-full bg-gradient-to-r from-[#1e4d3d] to-[#2a5f4a] hover:from-[#153a2d] hover:to-[#1e4d3d] dark:from-[#7fb685] dark:to-[#6fa375] dark:hover:from-[#6fa375] dark:hover:to-[#5f8f65] text-white h-11 font-medium shadow-lg shadow-[#1e4d3d]/20 dark:shadow-[#7fb685]/20 transition-all active:scale-[0.98]">
+                Passer la commande
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+
+              {/* Security Info */}
+              <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground dark:text-gray-400">
+                <div className="w-4 h-4 bg-green-500/10 rounded-full flex items-center justify-center">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                </div>
+                <span>Paiement 100% sécurisé</span>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-background pb-20 lg:pb-0">
@@ -286,9 +450,9 @@ export function ClientShop() {
                     )}
                   </button>
                 </SheetTrigger>
-                <SheetContent className="w-full sm:max-w-md">
-                  <SheetHeader className="mb-6">
-                    <SheetTitle className="flex items-center gap-2">
+                <SheetContent className="w-full sm:max-w-[420px] flex flex-col">
+                  <SheetHeader className="mb-4">
+                    <SheetTitle className="flex items-center gap-2 text-lg">
                       <ShoppingCart className="w-5 h-5" />
                       Mon Panier
                     </SheetTitle>
@@ -297,11 +461,65 @@ export function ClientShop() {
                 </SheetContent>
               </Sheet>
 
-              {/* User Menu */}
-              <button className="hidden lg:flex items-center gap-2 p-2 hover:bg-[#2a5f4a] rounded-lg transition-colors">
-                <User className="w-5 h-5" />
-                <span className="text-sm">Mon Compte</span>
-              </button>
+              {/* User Menu - Desktop */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="hidden lg:flex items-center gap-2 p-2 hover:bg-[#2a5f4a] rounded-lg transition-colors">
+                    <Avatar className="w-8 h-8">
+                      <AvatarFallback className="bg-[#ff6b35] text-white text-sm">
+                        JD
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-sm">Mon Compte</span>
+                    <ChevronDown className="w-4 h-4" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel className="flex items-center gap-3 py-3">
+                    <Avatar className="w-10 h-10">
+                      <AvatarFallback className="bg-[#ff6b35] text-white">
+                        JD
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col">
+                      <span className="text-sm">John Doe</span>
+                      <span className="text-xs text-muted-foreground">john@example.com</span>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="cursor-pointer">
+                    <UserCircle className="w-4 h-4 mr-2" />
+                    Mon Profil
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer">
+                    <Package className="w-4 h-4 mr-2" />
+                    Mes Commandes
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer">
+                    <Heart className="w-4 h-4 mr-2" />
+                    Mes Favoris
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer relative">
+                    <Bell className="w-4 h-4 mr-2" />
+                    Notifications
+                    <Badge variant="destructive" className="ml-auto text-xs px-1.5 py-0">
+                      3
+                    </Badge>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="cursor-pointer">
+                    <Settings className="w-4 h-4 mr-2" />
+                    Paramètres
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950"
+                    onClick={onLogout}
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Déconnexion
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
 
@@ -403,25 +621,25 @@ export function ClientShop() {
               
               <CardContent className="p-4">
                 <div className="mb-2">
-                  <h3 className="text-gray-900 mb-1 truncate">{product.name}</h3>
-                  <p className="text-xs text-gray-500 truncate">{product.producer}</p>
+                  <h3 className="text-foreground dark:text-white mb-1 truncate">{product.name}</h3>
+                  <p className="text-xs text-muted-foreground dark:text-gray-400 truncate">{product.producer}</p>
                 </div>
 
                 <div className="flex items-center gap-1 mb-3">
                   <Star className="w-4 h-4 fill-[#ff6b35] text-[#ff6b35]" />
-                  <span className="text-sm text-gray-700">{product.rating}</span>
+                  <span className="text-sm text-foreground dark:text-gray-300">{product.rating}</span>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <span className="text-[#1e4d3d]">{product.price.toFixed(2)} €</span>
-                    <span className="text-sm text-gray-500 ml-1">/ {product.unit}</span>
+                    <span className="text-[#1e4d3d] dark:text-[#7fb685]">{product.price.toFixed(2)} €</span>
+                    <span className="text-sm text-muted-foreground dark:text-gray-400 ml-1">/ {product.unit}</span>
                   </div>
                   
                   <Button
                     onClick={() => addToCart(product)}
                     disabled={!product.inStock}
-                    className="bg-[#ff6b35] hover:bg-[#e55a28] text-white shadow-md hover:shadow-lg transition-all"
+                    className="bg-[#ff6b35] hover:bg-[#e55a28] dark:bg-[#ff8c6b] dark:hover:bg-[#ff6b35] text-white shadow-md hover:shadow-lg transition-all"
                     size="sm"
                   >
                     <Plus className="w-4 h-4" />
@@ -434,21 +652,21 @@ export function ClientShop() {
       </div>
 
       {/* Mobile Bottom Navigation */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-40">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-background dark:bg-card border-t border-border shadow-lg z-40">
         <div className="grid grid-cols-4 gap-1">
-          <button className="flex flex-col items-center justify-center py-3 text-[#1e4d3d] bg-[#f0f9f4]">
+          <button className="flex flex-col items-center justify-center py-3 text-[#1e4d3d] dark:text-[#7fb685] bg-[#f0f9f4] dark:bg-[#1e4d3d]/20">
             <Home className="w-5 h-5 mb-1" />
             <span className="text-xs">Accueil</span>
           </button>
           
-          <button className="flex flex-col items-center justify-center py-3 text-gray-600 hover:text-[#1e4d3d] hover:bg-gray-50 transition-colors">
+          <button className="flex flex-col items-center justify-center py-3 text-muted-foreground hover:text-[#1e4d3d] dark:hover:text-[#7fb685] hover:bg-accent transition-colors">
             <Grid className="w-5 h-5 mb-1" />
             <span className="text-xs">Catégories</span>
           </button>
           
           <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
             <SheetTrigger asChild>
-              <button className="flex flex-col items-center justify-center py-3 text-gray-600 hover:text-[#1e4d3d] hover:bg-gray-50 transition-colors relative">
+              <button className="flex flex-col items-center justify-center py-3 text-gray-600 hover:text-[#1e4d3d] dark:text-gray-400 dark:hover:text-[#7fb685] hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors relative">
                 <ShoppingBag className="w-5 h-5 mb-1" />
                 <span className="text-xs">Panier</span>
                 {getTotalItems() > 0 && (
@@ -458,9 +676,9 @@ export function ClientShop() {
                 )}
               </button>
             </SheetTrigger>
-            <SheetContent side="bottom" className="h-[90vh]">
-              <SheetHeader className="mb-6">
-                <SheetTitle className="flex items-center gap-2">
+            <SheetContent side="bottom" className="h-[85vh] flex flex-col">
+              <SheetHeader className="mb-4">
+                <SheetTitle className="flex items-center gap-2 text-lg">
                   <ShoppingCart className="w-5 h-5" />
                   Mon Panier
                 </SheetTitle>
@@ -469,7 +687,7 @@ export function ClientShop() {
             </SheetContent>
           </Sheet>
           
-          <button className="flex flex-col items-center justify-center py-3 text-gray-600 hover:text-[#1e4d3d] hover:bg-gray-50 transition-colors">
+          <button className="flex flex-col items-center justify-center py-3 text-muted-foreground hover:text-[#1e4d3d] dark:hover:text-[#7fb685] hover:bg-accent transition-colors">
             <User className="w-5 h-5 mb-1" />
             <span className="text-xs">Compte</span>
           </button>
