@@ -59,4 +59,10 @@ Route::prefix('admin')
         Route::get('orders', [\App\Http\Controllers\Api\Admin\OrderController::class, 'index']);
         Route::get('orders/{order}', [\App\Http\Controllers\Api\Admin\OrderController::class, 'show']);
         Route::put('orders/{order}/status', [\App\Http\Controllers\Api\Admin\OrderController::class, 'updateStatus']);
+
+        // Gestion des Utilisateurs
+        Route::get('users', [\App\Http\Controllers\Api\Admin\UserController::class, 'index']);
+        Route::post('users/create-admin', [\App\Http\Controllers\Api\Admin\UserController::class, 'createAdmin']); // Correction
+        Route::put('users/{id}/role', [\App\Http\Controllers\Api\Admin\UserController::class, 'updateRole']);
+        Route::delete('users/{id}', [\App\Http\Controllers\Api\Admin\UserController::class, 'destroy']);
     });
