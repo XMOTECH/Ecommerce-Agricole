@@ -43,5 +43,20 @@ Route::middleware('auth:sanctum')->group(function () {
     // Route dela commande
     Route::get('orders', [OrderController::class, 'index']);
     Route::get('orders/{id}', [OrderController::class, 'show']);
-
 });
+
+Route::prefix('admin')
+    ->middleware(['auth:sanctum', 'role:admin|super-admin']) //  Ajout de auth:sanctum
+    ->group(function () {
+        // Gestion des Produits
+        Route::get('products', [\App\Http\Controllers\Api\Admin\ProductController::class, 'index']);
+        Route::post('products', [\App\Http\Controllers\Api\Admin\ProductController::class, 'store']);
+        Route::get('products/{product}', [\App\Http\Controllers\Api\Admin\ProductController::class, 'show']);
+        Route::put('products/{product}', [\App\Http\Controllers\Api\Admin\ProductController::class, 'update']);
+        Route::delete('products/{product}', [\App\Http\Controllers\Api\Admin\ProductController::class, 'destroy']);
+
+        // Gestion des Commandes
+        Route::get('orders', [\App\Http\Controllers\Api\Admin\OrderController::class, 'index']);
+        Route::get('orders/{order}', [\App\Http\Controllers\Api\Admin\OrderController::class, 'show']);
+        Route::put('orders/{order}/status', [\App\Http\Controllers\Api\Admin\OrderController::class, 'updateStatus']);
+    });
